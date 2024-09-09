@@ -60,9 +60,9 @@ export const Setup = ({
 
   const getRestPoints = (id: 1 | 2) =>
     maxPoints -
-    (setup[`attack${id}`] || 6) -
-    (setup[`defense${id}`] || 6) -
-    (setup[`dodge${id}`] || 6) -
+    (setup[`attack${id}`] || 0) -
+    (setup[`defense${id}`] || 0) -
+    (setup[`dodge${id}`] || 0) -
     (setup[`health${id}`] || 0);
 
   const isValidSetup = (
@@ -189,6 +189,7 @@ export const Setup = ({
             min="6"
             max="16"
             onChange={(e) => handleSetupChange(e, "1", "health")}
+            disabled={!!healthCommon}
           />
         </label>
         <br />
@@ -236,6 +237,7 @@ export const Setup = ({
             min="6"
             max="16"
             onChange={(e) => handleSetupChange(e, "2", "health")}
+            disabled={!!healthCommon}
           />
         </label>
         <br />
