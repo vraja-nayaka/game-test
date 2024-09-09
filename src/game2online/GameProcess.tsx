@@ -4,7 +4,7 @@ import { GameReadyConfig } from "../api/types";
 import { PlayerDisplay } from "./PlayerDisplay";
 import ActionLog from "../components/ActionLogs";
 import { useEffect } from "react";
-import { getIsDodgeSuccess } from "./utils";
+import { getIsDodgeSuccess } from "../utils";
 
 type Props = {
   existedGame: WithId<GameReadyConfig>;

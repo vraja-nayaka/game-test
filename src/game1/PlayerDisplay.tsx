@@ -19,7 +19,8 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
       <div className="status">
         <p>Атака: {player.attack}</p>
         <p>Защита: {player.defense}</p>
-        <p>Здоровье: {player.health}</p>
+        <p>Уклонение: {player.dodge}</p>
+        <p>Здоровье: {player.currentHealth} / {player.health}</p>
       </div>
       <label>
         Ульта: {player.ultCooldown ? `(Cooldown ${player.ultCooldown})` : ""}

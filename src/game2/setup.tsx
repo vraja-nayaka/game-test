@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Player } from "./types";
-import { getDodgePercent } from "./utils";
+import { getDodgePercent } from "../utils";
 
 type Props = {
   player1: Player;
@@ -36,7 +36,7 @@ export const Setup = ({
     heal2: 4,
   });
 
-  const [healthMult, setHealthMult] = useState<number>(1);
+  const [healthMult, setHealthMult] = useState<number>(10);
   const [healthCommon, setHealthCommon] = useState<number>(0);
 
   const maxPoints = healthCommon ? 40 : 50;

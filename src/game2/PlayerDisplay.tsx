@@ -1,5 +1,5 @@
 import { Player } from "./types";
-import { getDodgePercent } from "./utils";
+import { getDodgePercent } from "../utils";
 
 interface PlayerDisplayProps {
   playerId: 1 | 2;

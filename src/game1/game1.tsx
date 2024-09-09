@@ -3,11 +3,14 @@ import { Player } from "./types";
 import { PlayerDisplay } from "./PlayerDisplay";
 import { Setup } from "./setup";
 import ActionLog from "../components/ActionLogs";
+import { getIsDodgeSuccess } from "../utils";
 
 const initialPlayer: Player = {
   attack: 6,
   defense: 6,
+  dodge: 0,
   health: 60,
+  currentHealth: 60,
   ultReady: true,
   ultChecked: false,
   lastMove: null,
@@ -22,6 +25,8 @@ const Game1: React.FC = () => {
   const [gameOver, setGameOver] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
 
+  const [dodgeMultiplier, setDodgeMultiplier] = useState<number>(5);
+
   const addLog = (message: string) => {
     setLogs((prevLogs) => [message, ...prevLogs]);
   };
@@ -34,6 +39,8 @@ const Game1: React.FC = () => {
     const playerData = playerId === 1 ? player1 : player2;
     const opponentId = playerId === 1 ? 2 : 1;
     const opponentData = playerId === 1 ? player2 : player1;
+
+    const isDodgeSuccess = getIsDodgeSuccess(playerData.dodge, dodgeMultiplier);
 
     if (opponentData.lastMove !== "attack") {
       const ultText = opponentData.ultChecked ? " (с ультой 💫)" : "";
@@ -65,19 +72,25 @@ const Game1: React.FC = () => {
 
     const damageDealt = Math.max(totalDamage - defenseEffect, 0);
     const ultText = opponentData.ultChecked ? " (с ультой! 💫)" : "";
+
+    const dodgeText = isDodgeSuccess
+      ? `. Но игрок ${playerId} УВЕРНУЛСЯ и не получил урона! ⚡️`
+      : "";
+
     addLog(
       `Игрок ${opponentId} атакует на ${damageDealt} урона${defenseText}` +
-        ultText
+        ultText +
+        dodgeText
     );
 
-    return damageDealt;
+    return isDodgeSuccess ? 0 : damageDealt;
   };
 
   const endTurn = () => {
     const newPlayersState = [player1, player2].map((playerData, index) => {
       const playerId = index === 0 ? 1 : 2;
       const damage = getDamage(playerId);
-      const newHealth = playerData.health - damage;
+      const newHealth = playerData.currentHealth - damage;
 
       const newCooldown = playerData.ultChecked
         ? ultCooldown
@@ -95,13 +108,30 @@ const Game1: React.FC = () => {
         ultCooldown: newCooldown,
         ultReady: newCooldown === 0,
         lastMove: null,
-        health: newHealth,
+        currentHealth: newHealth,
       };
     });
 
     [setPlayer1, setPlayer2].forEach((setPlayer, index) => {
       setPlayer(newPlayersState[index]);
     });
+  };
+
+  const restart = () => {
+    const newPlayersState = [player1, player2].map((playerData) => {
+      return {
+        ...playerData,
+        currentHealth: playerData.health,
+        lastMove: null,
+        ultCooldown: 0,
+        ultReady: true,
+      };
+    });
+    [setPlayer1, setPlayer2].forEach((setPlayer, index) => {
+      setPlayer(newPlayersState[index]);
+    });
+    setLogs([]);
+    setGameOver(false);
   };
 
   return (
@@ -124,10 +154,13 @@ const Game1: React.FC = () => {
             setPlayer1={setPlayer1}
             setPlayer2={setPlayer2}
             addLog={addLog}
+            dodgeMultiplier={dodgeMultiplier}
+            setDodgeMultiplier={setDodgeMultiplier}
           />
         </>
       ) : (
         <>
+          <button onClick={restart}>Restart с теми же статами</button>
           <div className="container">
             <PlayerDisplay
               playerId={1}

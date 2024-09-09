@@ -3,7 +3,7 @@ import { Player } from "./types";
 import { PlayerDisplay } from "./PlayerDisplay";
 import { Setup } from "./setup";
 import ActionLog from "../components/ActionLogs";
-import { getIsDodgeSuccess } from "./utils";
+import { getIsDodgeSuccess } from "../utils";
 
 const initialPlayer: Player = {
   attack: 4,
