@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Player } from "./types";
-import { getDodgePercent } from "./utils";
+import { getDodgePercent } from "../utils";
 
 type Props = {
   player: Player;

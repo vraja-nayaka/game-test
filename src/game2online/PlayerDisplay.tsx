@@ -1,6 +1,6 @@
 import { Player } from "./types";
 import { OnlinePlayer } from "../api/types";
-import { getDodgePercent } from "./utils";
+import { getDodgePercent } from "../utils";
 
 interface PlayerDisplayProps {
   player: OnlinePlayer;
