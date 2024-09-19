@@ -31,8 +31,18 @@ const Game1: React.FC = () => {
     setLogs((prevLogs) => [message, ...prevLogs]);
   };
 
-  const randomBonus = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  const calcDamageDealt = (playerData: Player) => {
+    if (playerData.lastMove === "defend") {
+      return 0;
+    }
+
+    let totalDamage = playerData.attack;
+
+    if (playerData.ultChecked) {
+      totalDamage += playerData.defense;
+    }
+
+    return totalDamage;
   };
 
   const getDamage = (playerId: 1 | 2): number => {
@@ -42,29 +52,14 @@ const Game1: React.FC = () => {
 
     const isDodgeSuccess = getIsDodgeSuccess(playerData.dodge, dodgeMultiplier);
 
-    if (opponentData.lastMove !== "attack") {
-      const ultText = opponentData.ultChecked ? " (с ультой 💫)" : "";
-      addLog(`Игрок ${opponentId} защищается` + ultText);
-      return 0;
-    }
-
-    let baseDamage = opponentData.attack * 2;
-    let randomDamage = randomBonus(-2, 2);
-    let totalDamage = baseDamage + randomDamage;
-
-    if (opponentData.lastMove === "attack" && opponentData.ultChecked) {
-      totalDamage *= 2;
-    }
-
-    let defensePercent = playerData.defense * 5 + randomBonus(-5, 5);
-    if (playerData.ultChecked) {
-      defensePercent += 25;
-    }
+    let totalDamage = calcDamageDealt(opponentData);
+    const addDefensePercent = playerData.lastMove === "defend" ? 25 : 0;
+    let defensePercent = playerData.defense * 5 + addDefensePercent;
 
     const defenseEffect =
-      playerData.lastMove === "defend"
-        ? Math.round((totalDamage * defensePercent) / 100)
-        : 0;
+      playerData.lastMove === "defend" && playerData.ultChecked
+        ? 0
+        : Math.round((totalDamage * defensePercent) / 100);
 
     const defenseText = defenseEffect
       ? `: ${totalDamage} - ${defenseEffect} защита (${defensePercent}%)`
@@ -73,9 +68,26 @@ const Game1: React.FC = () => {
     const damageDealt = Math.max(totalDamage - defenseEffect, 0);
     const ultText = opponentData.ultChecked ? " (с ультой! 💫)" : "";
 
-    const dodgeText = isDodgeSuccess
-      ? `. Но игрок ${playerId} УВЕРНУЛСЯ и не получил урона! ⚡️`
-      : "";
+    if (opponentData.lastMove === "defend") {
+      const reflectDamage = calcDamageDealt(playerData);
+      const reflectText =
+        playerData.lastMove === "attack"
+          ? ` и отражает ${reflectDamage} урона в противника`
+          : "";
+      const ultText = opponentData.ultChecked
+        ? " (с ультой 💫)" + reflectText
+        : " (защита + 25%)";
+
+      addLog(`Игрок ${opponentId} защищается` + ultText);
+
+      return opponentData.ultChecked ? reflectDamage : 0;
+    }
+
+    const dodgeText =
+      isDodgeSuccess &&
+      !(playerData.lastMove === "defend" && playerData.ultChecked)
+        ? `. Но игрок ${playerId} УВЕРНУЛСЯ и не получил урона! ⚡️`
+        : "";
 
     addLog(
       `Игрок ${opponentId} атакует на ${damageDealt} урона${defenseText}` +
@@ -83,7 +95,10 @@ const Game1: React.FC = () => {
         dodgeText
     );
 
-    return isDodgeSuccess ? 0 : damageDealt;
+    return isDodgeSuccess ||
+      (playerData.lastMove === "defend" && playerData.ultChecked)
+      ? 0
+      : damageDealt;
   };
 
   const endTurn = () => {

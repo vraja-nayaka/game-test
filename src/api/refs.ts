@@ -36,12 +36,13 @@ const getCollectionRef = <Doc>(collectionName: string) =>
 const getDocRef = <Doc>(id: string, collectionName: string) =>
   doc(db, collectionName, id) as DocumentReference<Doc>;
 
-const gameReady = (id: string) =>
-  getDocRef<GameReadyConfig>(id, "gameReadyConfig");
+const gameReady = <Player>(id: string) =>
+  getDocRef<GameReadyConfig<Player>>(id, "gameReadyConfig");
 
-const gamesReady = getCollectionRef<GameReadyConfig>("gameReadyConfig");
-const gamesReadyWithId =
-  getCollectionRef<WithId<GameReadyConfig>>("gameReadyConfig");
+const gamesReady = <Player>() =>
+  getCollectionRef<GameReadyConfig<Player>>("gameReadyConfig");
+const gamesReadyWithId = <Player>() =>
+  getCollectionRef<WithId<GameReadyConfig<Player>>>("gameReadyConfig");
 
 export const apiRefs = {
   gameReady,

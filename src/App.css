@@ -17,6 +17,7 @@
 .container {
   display: flex;
   justify-content: space-between;
+  gap: 20px;
   margin-top: 20px;
 }
 
@@ -42,4 +43,8 @@ input {
 
 .selectedAction {
   background-color: darkcyan;
+}
+
+.log {
+  max-width: 500px;
 }

@@ -7,12 +7,12 @@ import { Player } from "./types";
 import { GameProcess } from "./GameProcess";
 
 const initialPlayer: Player = {
-  attack: 4,
-  defense: 4,
-  health: 4,
-  currentHealth: 4,
+  attack: 10,
+  defense: 0,
+  health: 100,
+  currentHealth: 100,
+  prevHealth: 100,
   dodge: 0,
-  heal: 4,
   ultReady: true,
   ultChecked: false,
   lastMove: null,
@@ -20,10 +20,9 @@ const initialPlayer: Player = {
 };
 
 export const StartGame = () => {
-  const [healthMult, setHealthMult] = useState<number>(1);
-  const [healthCommon, setHealthCommon] = useState<number>(0);
   const [dodgeMultiplier, setDodgeMultiplier] = useState<number>(5);
-  const [maxPoints, setMaxPoints] = useState<number>(40);
+  const [ultDamageMultiplier, setUltDamageMultiplier] = useState<number>(1);
+  const [maxPoints, setMaxPoints] = useState<number>(30);
   const [playerName, setPlayerName] = useState<string>(
     localStorage.getItem("name") || "default"
   );
@@ -40,9 +39,9 @@ export const StartGame = () => {
     const doc = await addDoc(apiRefs.gamesReady<Player>(), {
       player1: { ...player, name: playerName },
       dodgeMultiplier,
-      healthCommon,
-      ultDamageMultiplier: 1,
-      healthMult,
+      ultDamageMultiplier,
+      healthCommon: 100,
+      healthMult: 1,
       maxPoints,
     });
     const prevGameId = localStorage.getItem("currentOnlineGameId");
@@ -92,8 +91,6 @@ export const StartGame = () => {
             ) : (
               <Setup
                 dodgeMultiplier={existedGame.dodgeMultiplier}
-                healthCommon={existedGame.healthCommon}
-                healthMult={existedGame.healthMult}
                 maxPoints={existedGame.maxPoints}
                 player={player}
                 isCurrentGameAdmin={isCurrentGameAdmin}
@@ -165,40 +162,39 @@ export const StartGame = () => {
                   onChange={(e) => setDodgeMultiplier(parseInt(e.target.value))}
                 />
               </label>
+
               <label>
-                Мультипликатор здоровья:{" "}
+                Мультипликатор урона от ульта:{" "}
                 <input
                   type="number"
-                  value={healthMult}
+                  value={ultDamageMultiplier}
                   min="1"
-                  onChange={(e) => setHealthMult(parseInt(e.target.value))}
-                  disabled={!!healthCommon}
+                  onChange={(e) =>
+                    setUltDamageMultiplier(parseInt(e.target.value))
+                  }
                 />
               </label>
-              <label>
-                Фиксированное здоровье:{" "}
-                <input
-                  type="number"
-                  value={healthCommon}
-                  min="0"
-                  onChange={(e) => setHealthCommon(parseInt(e.target.value))}
-                />
-              </label>
+
               <button onClick={onStartNewGame}>Start new game</button>
             </div>
 
             <div>
               <h3>Connect existing game</h3>
 
-              {activeGames
-                ?.filter(({ player2, player2Name }) => !player2 && !player2Name)
-                .map(({ player1, id }) => {
-                  return (
-                    <button key={id} onClick={() => joinGame(id)}>
-                      Admin: {player1.name}, id: {id}
-                    </button>
-                  );
-                })}
+              {/* // ?.filter(({ player2, player2Name }) => !player2 && !player2Name) */}
+              {activeGames?.map(({ player1, id, player2, player2Name }) => {
+                const isInProgress = Boolean(player2 || player2Name);
+                return (
+                  <button
+                    key={id}
+                    onClick={() => joinGame(id)}
+                    disabled={isInProgress}
+                  >
+                    Admin: {player1.name}, id: {id}{" "}
+                    {isInProgress ? "(In Progress)" : ""}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

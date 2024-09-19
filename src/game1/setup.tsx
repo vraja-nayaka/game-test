@@ -24,18 +24,18 @@ export const Setup = ({
   setDodgeMultiplier,
 }: Props) => {
   const [setup, setSetup] = useState({
-    attack1: 6,
-    defense1: 6,
-    dodge1: 6,
+    attack1: 10,
+    defense1: 0,
+    dodge1: 0,
     health1: 6,
-    attack2: 6,
-    defense2: 6,
-    dodge2: 6,
+    attack2: 10,
+    defense2: 0,
+    dodge2: 0,
     health2: 6,
   });
 
-  const [healthMult, setHealthMult] = useState<number>(10);
-  const [healthCommon, setHealthCommon] = useState<number>(0);
+  const [healthMult, setHealthMult] = useState<number>(1);
+  const [healthCommon, setHealthCommon] = useState<number>(100);
 
   const maxPoints = healthCommon ? 28 : 34;
 
@@ -153,8 +153,8 @@ export const Setup = ({
           <input
             type="number"
             value={setup.attack1}
-            min="6"
-            max="16"
+            min="10"
+            max="20"
             onChange={(e) => handleSetupChange(e, "1", "attack")}
           />
         </label>
@@ -164,8 +164,8 @@ export const Setup = ({
           <input
             type="number"
             value={setup.defense1}
-            min="6"
-            max="16"
+            min="0"
+            max="10"
             onChange={(e) => handleSetupChange(e, "1", "defense")}
           />
         </label>
@@ -176,7 +176,7 @@ export const Setup = ({
             type="number"
             value={setup.dodge1}
             min="0"
-            max="16"
+            max="10"
             onChange={(e) => handleSetupChange(e, "1", "dodge")}
           />
         </label>
@@ -201,8 +201,8 @@ export const Setup = ({
           <input
             type="number"
             value={setup.attack2}
-            min="6"
-            max="16"
+            min="10"
+            max="20"
             onChange={(e) => handleSetupChange(e, "2", "attack")}
           />
         </label>
@@ -212,8 +212,8 @@ export const Setup = ({
           <input
             type="number"
             value={setup.defense2}
-            min="6"
-            max="16"
+            min="0"
+            max="10"
             onChange={(e) => handleSetupChange(e, "2", "defense")}
           />
         </label>
@@ -234,8 +234,8 @@ export const Setup = ({
           <input
             type="number"
             value={setup.health2}
-            min="6"
-            max="16"
+            min="0"
+            max="10"
             onChange={(e) => handleSetupChange(e, "2", "health")}
             disabled={!!healthCommon}
           />

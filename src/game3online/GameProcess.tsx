@@ -14,7 +14,25 @@ type Props = {
 
 export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
   const ultCooldown = 1;
-  const { dodgeMultiplier, player1, player2, id, logs = [] } = existedGame;
+  const {
+    dodgeMultiplier,
+    player1,
+    player2,
+    id,
+    logs = [],
+    ultDamageMultiplier,
+  } = existedGame;
+
+  const calcDamageDealt = (playerData: Player) => {
+    if (playerData.lastMove === "attack") {
+      return playerData.attack;
+    }
+    if (playerData.lastMove === "ultimate") {
+      return playerData.attack * ultDamageMultiplier;
+    }
+
+    return 0;
+  };
 
   const getDamage = (playerId: 1 | 2): [number, string] => {
     if (!player1 || !player2) {
@@ -25,47 +43,56 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
     const opponentData = playerId === 1 ? player2 : player1;
 
     let logText = `Игрок ${opponentData.name} `;
+
     if (opponentData.lastMove === null) {
-      const damage = playerData.lastMove === "heal" ? -playerData.heal : 0;
-      return [damage, logText + "отдыхает"];
+      opponentData.lastMove = "attack";
+    }
+    if (opponentData.lastMove === "defense") {
+      return [0, logText + "защищается"];
     }
 
     const isDodgeSuccess = getIsDodgeSuccess(playerData.dodge, dodgeMultiplier);
 
-    let totalDamage = 0;
+    let totalDamage = calcDamageDealt(opponentData);
 
     const defenseEffect =
-      playerData.lastMove === "ultimate" || playerData.ultCooldown
-        ? 0
-        : playerData.defense;
+      playerData.lastMove === "ultimate" ||
+      playerData.lastMove === "defense" ||
+      playerData.lastMove === "reflect"
+        ? playerData.defense
+        : 0;
 
     if (opponentData.lastMove === "attack") {
-      totalDamage = Math.max(0, opponentData.attack - defenseEffect);
-      logText += `атакует 🗡 на ${totalDamage} (${opponentData.attack} - ${defenseEffect} защита)`;
+      totalDamage = Math.max(0, totalDamage - defenseEffect);
+      const defenseText = defenseEffect
+        ? `(${opponentData.attack} - ${defenseEffect} защита)`
+        : "";
+      logText += `атакует 🗡 на ${totalDamage} ${defenseText}`;
     }
 
     if (opponentData.lastMove === "ultimate") {
-      totalDamage = Math.max(
-        0,
-        opponentData.attack +
-          opponentData.defense +
-          opponentData.heal -
-          defenseEffect
-      );
-      logText += `ультует 🔥 на ${totalDamage} (${opponentData.attack}🗡 + ${opponentData.defense}🛡 + ${opponentData.heal}💊 - ${defenseEffect} защита)`;
+      totalDamage = Math.max(0, totalDamage - defenseEffect);
+      const ultText = `(${ultDamageMultiplier} * ${opponentData.attack} - ${defenseEffect} защита)`;
+
+      logText += `ультует 🔥 на ${totalDamage} ${ultText}`;
     }
 
-    if (isDodgeSuccess && opponentData.lastMove !== "heal") {
+    if (opponentData.lastMove === "reflect") {
+      const playerDamage = calcDamageDealt(playerData);
+      const reflectDamage = Math.min(opponentData.defense, playerDamage);
+      const reflectText = reflectDamage
+        ? ` и отражает ${reflectDamage} урона в противника`
+        : "";
+
+      logText = logText + `делает reflect` + reflectText;
+
+      return [reflectDamage, logText];
+    }
+
+    if (isDodgeSuccess) {
       totalDamage = 0;
-      logText += `. Но ${playerData.name} УВЕРНУЛСЯ и не получил урона! ⚡️`;
-    }
-
-    if (opponentData.lastMove === "heal") {
-      logText += `хилится 💊 на ${opponentData.heal}`;
-    }
-
-    if (playerData.lastMove === "heal") {
-      totalDamage -= playerData.heal;
+      logText += `.\n
+Но ${playerData.name} УВЕРНУЛСЯ и не получил урона! ⚡️`;
     }
 
     return [totalDamage, logText];
@@ -76,12 +103,13 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
       return {
         ...playerData,
         currentHealth: playerData?.health,
+        prevHealth: playerData?.health,
         lastMove: null,
         ultCooldown: 0,
         ultReady: true,
       };
     });
-    updateDoc(apiRefs.gameReady(id), {
+    updateDoc(apiRefs.gameReady<Player>(id), {
       player1: newPlayer1,
       player2: newPlayer2,
       logs: ["Game restarted"],
@@ -89,8 +117,8 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
   };
 
   useEffect(() => {
-    const isPlayer1TurnEnd = player1.lastMove || !player1.ultReady;
-    const isPlayer2TurnEnd = player2?.lastMove || !player2?.ultReady;
+    const isPlayer1TurnEnd = player1.lastMove;
+    const isPlayer2TurnEnd = player2?.lastMove;
     // endTurn
     if (isCurrentGameAdmin && isPlayer1TurnEnd && isPlayer2TurnEnd) {
       if (!player1 || !player2) {
@@ -107,7 +135,8 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
           const newHealth = playerData.currentHealth - damage;
 
           const newCooldown =
-            playerData.lastMove === "ultimate"
+            playerData.lastMove === "ultimate" ||
+            playerData.lastMove === "reflect"
               ? ultCooldown
               : playerData.ultCooldown > 0
               ? playerData.ultCooldown - 1
@@ -119,12 +148,13 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
             ultCooldown: newCooldown,
             ultReady: newCooldown === 0,
             lastMove: null,
-            currentHealth: Math.min(newHealth, playerData.health),
+            prevHealth: playerData.currentHealth,
+            currentHealth: newHealth,
           };
         }
       );
 
-      updateDoc(apiRefs.gameReady(id), {
+      updateDoc(apiRefs.gameReady<Player>(id), {
         player1: newPlayer1,
         player2: newPlayer2,
         logs: newLogs,
@@ -146,7 +176,7 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
           dodgeMultiplier={dodgeMultiplier}
           player={player1}
           setPlayer={(player) =>
-            updateDoc(apiRefs.gameReady(id), { player1: player })
+            updateDoc(apiRefs.gameReady<Player>(id), { player1: player })
           }
           isMyPlayer={!!isCurrentGameAdmin}
           isGameOver={isGameOver}
@@ -156,7 +186,7 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
           dodgeMultiplier={dodgeMultiplier}
           player={player2}
           setPlayer={(player) =>
-            updateDoc(apiRefs.gameReady(id), { player2: player })
+            updateDoc(apiRefs.gameReady<Player>(id), { player2: player })
           }
           isMyPlayer={!isCurrentGameAdmin}
           isGameOver={isGameOver}

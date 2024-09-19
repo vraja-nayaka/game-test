@@ -6,6 +6,7 @@ export const Home = () => {
       <Link to={"/game1"}>Game 1</Link>
       <Link to={"/game2"}>Game 2</Link>
       <Link to={"/game2online"}>Game 2 online</Link>
+      <Link to={"/game3online"}> 🔥 Game 3 online </Link>
     </div>
   );
 };

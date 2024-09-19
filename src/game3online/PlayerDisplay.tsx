@@ -20,31 +20,30 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
   const { lastMove } = player;
   const disabled = !player.ultReady || !!lastMove || isGameOver;
 
+  const healthDiff = player.currentHealth - player.prevHealth;
+
   return (
     <div className="player">
       <h2>Игрок {player.name}</h2>
       <div className="status">
         <p>Атака: {player.attack}</p>
         <p>Защита: {player.defense}</p>
-        <p>Лечение: {player.heal}</p>
         <p>Уклонение: {getDodgePercent(player.dodge, dodgeMultiplier)}%</p>
         <p style={{ color: player.currentHealth <= 0 ? "red" : "green" }}>
-          Здоровье: {player.currentHealth} / {player.health}
+          Здоровье: {player.currentHealth} / {player.health}{" "}
+          <span style={{ color: "red" }}>({healthDiff})</span>
         </p>
       </div>
-      {/* <label>
-        Ульта: {player.ultCooldown ? `(Cooldown ${player.ultCooldown})` : ""}
-        <input
-          type="checkbox"
-          checked={ultChecked}
-          onChange={() => setPlayer({ ...player, ultChecked: !ultChecked })}
-          disabled={!player.ultReady}
-        />
-      </label> */}
       <br />
 
       {isMyPlayer && (
         <>
+          <button
+            onClick={() => setPlayer({ ...player, lastMove: "attack" })}
+            className={lastMove === "attack" ? "selectedAction" : undefined}
+          >
+            Атака
+          </button>
           <button
             onClick={() => setPlayer({ ...player, lastMove: "ultimate" })}
             className={lastMove === "ultimate" ? "selectedAction" : undefined}
@@ -53,18 +52,17 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
             Ultimate
           </button>
           <button
-            onClick={() => setPlayer({ ...player, lastMove: "attack" })}
-            className={lastMove === "attack" ? "selectedAction" : undefined}
-            disabled={disabled}
+            onClick={() => setPlayer({ ...player, lastMove: "defense" })}
+            className={lastMove === "defense" ? "selectedAction" : undefined}
           >
-            Атака
-          </button>
+            Защита
+          </button>{" "}
           <button
-            onClick={() => setPlayer({ ...player, lastMove: "heal" })}
-            className={lastMove === "heal" ? "selectedAction" : undefined}
+            onClick={() => setPlayer({ ...player, lastMove: "reflect" })}
+            className={lastMove === "reflect" ? "selectedAction" : undefined}
             disabled={disabled}
           >
-            Лечение
+            Рефлект
           </button>
         </>
       )}

@@ -1,13 +1,13 @@
-import { Player } from "../game2online/types";
+export type OnlinePlayer<Player> = Player & { name: string; isReady?: boolean };
 
-export type OnlinePlayer = Player & { name: string; isReady?: boolean };
-
-export type GameReadyConfig = {
+export type GameReadyConfig<Player> = {
   healthMult: number;
   healthCommon: number;
   dodgeMultiplier: number;
+  ultDamageMultiplier: number;
   maxPoints: number;
-  player1: OnlinePlayer;
-  player2?: OnlinePlayer;
+  player1: OnlinePlayer<Player>;
+  player2?: OnlinePlayer<Player>;
+  player2Name?: string;
   logs?: string[];
 };
