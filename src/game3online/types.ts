@@ -6,9 +6,11 @@ export interface Player {
   prevHealth: number;
   dodge: number;
   ultReady: boolean;
+  reflectReady: boolean;
   lastMove: LastMove;
   ultChecked: boolean;
   ultCooldown: number;
+  reflectCooldown: number;
 }
 
 export type LastMove = "attack" | "ultimate" | "defense" | "reflect" | null;

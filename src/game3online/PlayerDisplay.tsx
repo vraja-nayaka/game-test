@@ -18,7 +18,8 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
   isGameOver,
 }) => {
   const { lastMove } = player;
-  const disabled = !player.ultReady || !!lastMove || isGameOver;
+  const ultDisabled = !player.ultReady || !!lastMove || isGameOver;
+  const reflectDisabled = !player.reflectReady || !!lastMove || isGameOver;
 
   const healthDiff = player.currentHealth - player.prevHealth;
 
@@ -47,7 +48,7 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
           <button
             onClick={() => setPlayer({ ...player, lastMove: "ultimate" })}
             className={lastMove === "ultimate" ? "selectedAction" : undefined}
-            disabled={disabled}
+            disabled={ultDisabled}
           >
             Ultimate
           </button>
@@ -60,7 +61,7 @@ export const PlayerDisplay: React.FC<PlayerDisplayProps> = ({
           <button
             onClick={() => setPlayer({ ...player, lastMove: "reflect" })}
             className={lastMove === "reflect" ? "selectedAction" : undefined}
-            disabled={disabled}
+            disabled={reflectDisabled}
           >
             Рефлект
           </button>

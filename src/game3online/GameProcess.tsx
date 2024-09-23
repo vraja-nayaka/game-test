@@ -13,7 +13,6 @@ type Props = {
 };
 
 export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
-  const ultCooldown = 1;
   const {
     dodgeMultiplier,
     player1,
@@ -21,6 +20,8 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
     id,
     logs = [],
     ultDamageMultiplier,
+    reflectMultiplier = 1,
+    cooldown = 1,
   } = existedGame;
 
   const calcDamageDealt = (playerData: Player) => {
@@ -55,11 +56,13 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
 
     let totalDamage = calcDamageDealt(opponentData);
 
+    const reflectMult =
+      playerData.lastMove === "reflect" ? reflectMultiplier : 1;
     const defenseEffect =
       playerData.lastMove === "ultimate" ||
       playerData.lastMove === "defense" ||
       playerData.lastMove === "reflect"
-        ? playerData.defense
+        ? playerData.defense * reflectMult
         : 0;
 
     if (opponentData.lastMove === "attack") {
@@ -79,9 +82,12 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
 
     if (opponentData.lastMove === "reflect") {
       const playerDamage = calcDamageDealt(playerData);
-      const reflectDamage = Math.min(opponentData.defense, playerDamage);
+      const reflectDamage = Math.min(
+        reflectMultiplier * opponentData.defense,
+        playerDamage
+      );
       const reflectText = reflectDamage
-        ? ` и отражает ${reflectDamage} урона в противника`
+        ? ` и отражает ${reflectDamage} (${reflectMultiplier} * ${opponentData.defense}) урона в противника`
         : "";
 
       logText = logText + `делает reflect` + reflectText;
@@ -106,7 +112,9 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
         prevHealth: playerData?.health,
         lastMove: null,
         ultCooldown: 0,
+        reflectCooldown: 0,
         ultReady: true,
+        reflectReady: true,
       };
     });
     updateDoc(apiRefs.gameReady<Player>(id), {
@@ -134,19 +142,27 @@ export const GameProcess = ({ existedGame, isCurrentGameAdmin }: Props) => {
           newLogs.unshift(log);
           const newHealth = playerData.currentHealth - damage;
 
-          const newCooldown =
-            playerData.lastMove === "ultimate" ||
-            playerData.lastMove === "reflect"
-              ? ultCooldown
+          const newUltCooldown =
+            playerData.lastMove === "ultimate"
+              ? cooldown
               : playerData.ultCooldown > 0
               ? playerData.ultCooldown - 1
+              : 0;
+
+          const newReflectCooldown =
+            playerData.lastMove === "reflect"
+              ? cooldown
+              : playerData.reflectCooldown > 0
+              ? playerData.reflectCooldown - 1
               : 0;
 
           return {
             ...playerData,
             ultChecked: false,
-            ultCooldown: newCooldown,
-            ultReady: newCooldown === 0,
+            ultCooldown: newUltCooldown,
+            reflectCooldown: newReflectCooldown,
+            ultReady: newUltCooldown === 0,
+            reflectReady: newReflectCooldown === 0,
             lastMove: null,
             prevHealth: playerData.currentHealth,
             currentHealth: newHealth,

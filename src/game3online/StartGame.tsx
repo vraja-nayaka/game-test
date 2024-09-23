@@ -14,14 +14,18 @@ const initialPlayer: Player = {
   prevHealth: 100,
   dodge: 0,
   ultReady: true,
+  reflectReady: true,
   ultChecked: false,
   lastMove: null,
   ultCooldown: 0,
+  reflectCooldown: 0,
 };
 
 export const StartGame = () => {
   const [dodgeMultiplier, setDodgeMultiplier] = useState<number>(5);
   const [ultDamageMultiplier, setUltDamageMultiplier] = useState<number>(1);
+  const [reflectMultiplier, setReflectMultiplier] = useState<number>(1);
+  const [cooldown, setColldown] = useState<number>(2);
   const [maxPoints, setMaxPoints] = useState<number>(30);
   const [playerName, setPlayerName] = useState<string>(
     localStorage.getItem("name") || "default"
@@ -40,6 +44,8 @@ export const StartGame = () => {
       player1: { ...player, name: playerName },
       dodgeMultiplier,
       ultDamageMultiplier,
+      reflectMultiplier,
+      cooldown,
       healthCommon: 100,
       healthMult: 1,
       maxPoints,
@@ -69,6 +75,7 @@ export const StartGame = () => {
     setIsCurrentGameAdmin(false);
     updateDoc(apiRefs.gameReady<Player>(id), {
       player2Name: playerName,
+      player2: { ...player, name: playerName },
     });
   };
 
@@ -172,6 +179,27 @@ export const StartGame = () => {
                   onChange={(e) =>
                     setUltDamageMultiplier(parseInt(e.target.value))
                   }
+                />
+              </label>
+
+
+              <label>
+                ReflectMultiplier:{" "}
+                <input
+                  type="number"
+                  value={reflectMultiplier}
+                  min="1"
+                  onChange={(e) => setReflectMultiplier(parseInt(e.target.value))}
+                />
+              </label>
+
+              <label>
+                Cooldown:{" "}
+                <input
+                  type="number"
+                  value={cooldown}
+                  min="0"
+                  onChange={(e) => setColldown(parseInt(e.target.value))}
                 />
               </label>
 
